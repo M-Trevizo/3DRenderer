@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.Path2D;
+//import java.awt.geom.Path2D;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 public class DemoViewer {
@@ -56,8 +57,8 @@ public class DemoViewer {
                         Color.BLUE)
                 );
 
-                // Translate origin from upper left corner to the center before drawing
-                /*
+
+                /* This draws a simple wireframe that does not rotate
                 g2d.translate(getWidth() / 2, getHeight() / 2);
                 g2d.setColor(Color.WHITE);
                 for(Triangle t : triangles) {
@@ -69,6 +70,7 @@ public class DemoViewer {
                     g2d.draw(path);
                 }
                 */
+
                 // Heading (XZ) transformation
                 double heading = Math.toRadians(headingSlider.getValue());
                 Matrix3 headingTransfom = new Matrix3(new double[] {
@@ -89,6 +91,9 @@ public class DemoViewer {
                 // Results in a new matrix describing both transformation
                 Matrix3 transform = headingTransfom.multiply(pitchTransform);
 
+                // Translate origin from upper left corner to the center before drawing
+                // Draws a wire frame 
+                /*
                 g2d.translate(getWidth() / 2, getHeight() / 2);
                 g2d.setColor(Color.WHITE);
                 for(Triangle t : triangles) {
@@ -102,6 +107,43 @@ public class DemoViewer {
                     path.closePath();
                     g2d.draw(path);
                 }
+                */
+
+                BufferedImage img = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
+                for(Triangle t : triangles) {
+                    Vertex v1 = transform.transform(t.v1);
+                    Vertex v2 = transform.transform(t.v2);
+                    Vertex v3 = transform.transform(t.v3);
+
+                    // Manually apply transformation
+                    v1.x += getWidth() / 2;
+                    v1.y += getHeight() / 2;
+                    v2.x += getWidth() / 2;
+                    v2.y += getHeight() / 2;
+                    v3.x += getWidth() / 2;
+                    v3.y += getHeight() / 2;
+
+                    // Compute rectangular bounds for triangle
+                    int minX = (int) Math.max(0, Math.ceil(Math.min(v1.x, Math.min(v2.x, v3.x))));
+                    int maxX = (int) Math.min(img.getWidth() - 1, Math.floor(Math.max(v1.x, Math.max(v2.x, v3.x))));
+
+                    int minY = (int) Math.max(0, Math.ceil(Math.min(v1.y, Math.min(v2.y, v3.y))));
+                    int maxY = (int) Math.min(img.getWidth() - 1, Math.floor(Math.max(v1.y, Math.max(v2.y, v3.y))));
+
+                    double triangleArea = (v1.y - v3.y) * (v2.x - v3.x) + (v2.y - v3.y) * (v3.x - v1.x);
+                    
+                    for(int y = minY; y <= maxY; y++) {
+                        for(int x = minX; x <= maxX; x++) {
+                            double b1 = ((y - v3.y) * (v2.x - v3.x) + (v2.y - v3.y) * (v3.x - x)) / triangleArea;
+                            double b2 = ((y - v1.y) * (v3.x - v1.x) + (v3.y - v1.y) * (v1.x - x)) / triangleArea;
+                            double b3 = ((y - v2.y) * (v1.x - v2.x) + (v1.y - v2.y) * (v2.x - x)) / triangleArea;
+                            if(b1 >= 0 && b1 <= 1 && b2 >= 0 && b2 <= 1 && b3 >= 0 && b3 <= 1) {
+                                img.setRGB(x, y, t.color.getRGB());
+                            }
+                        }
+                    }
+                }
+                g2d.drawImage(img, 0, 0, null);
             }
         };
         pane.add(renderPanel, BorderLayout.CENTER);
