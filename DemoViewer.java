@@ -57,8 +57,8 @@ public class DemoViewer {
                 );
 
                 // Translate origin from upper left corner to the center before drawing
+                /*
                 g2d.translate(getWidth() / 2, getHeight() / 2);
-
                 g2d.setColor(Color.WHITE);
                 for(Triangle t : triangles) {
                     Path2D path = new Path2D.Double();
@@ -68,13 +68,26 @@ public class DemoViewer {
                     path.closePath();
                     g2d.draw(path);
                 }
-
+                */
+                // Heading (XZ) transformation
                 double heading = Math.toRadians(headingSlider.getValue());
-                Matrix3 transform = new Matrix3(new double[] {
+                Matrix3 headingTransfom = new Matrix3(new double[] {
                     Math.cos(heading), 0, -Math.sin(heading),
                     0, 1, 0,
                     Math.sin(heading), 0, Math.cos(heading)
                 });
+
+                // Pitch (YZ) transformation
+                double pitch = Math.toRadians(pitchSlider.getValue());
+                Matrix3 pitchTransform = new Matrix3(new double[] {
+                    1, 0, 0,
+                    0, Math.cos(pitch), Math.sin(pitch),
+                    0, -Math.sin(pitch), Math.cos(pitch)
+                });
+
+                // Multiply both transformation matrices (heading * pitch)
+                // Results in a new matrix describing both transformation
+                Matrix3 transform = headingTransfom.multiply(pitchTransform);
 
                 g2d.translate(getWidth() / 2, getHeight() / 2);
                 g2d.setColor(Color.WHITE);
@@ -92,6 +105,8 @@ public class DemoViewer {
             }
         };
         pane.add(renderPanel, BorderLayout.CENTER);
+        headingSlider.addChangeListener(e -> renderPanel.repaint());
+        pitchSlider.addChangeListener(e -> renderPanel.repaint());
 
         frame.setSize(400, 400);
         frame.setVisible(true);
