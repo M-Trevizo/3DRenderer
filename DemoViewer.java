@@ -19,6 +19,10 @@ public class DemoViewer {
         JSlider pitchSlider = new JSlider(SwingConstants.VERTICAL, -90, 90, 0);
         pane.add(pitchSlider, BorderLayout.EAST);
 
+        // Slider for roll rotation
+        JSlider rollSlider = new JSlider(SwingConstants.VERTICAL, 0, 360, 180);
+        pane.add(rollSlider, BorderLayout.WEST);
+
         // Panel to display render
         JPanel renderPanel = new JPanel() {
             public void paintComponent(Graphics g) {
@@ -73,9 +77,18 @@ public class DemoViewer {
                     0, -Math.sin(pitch), Math.cos(pitch)
                 });
 
-                // Multiply both transformation matrices (heading * pitch)
+                // Roll (XY) transformation
+                double roll = Math.toRadians(rollSlider.getValue());
+                Matrix3 rollTransform = new Matrix3(new double[] {
+                    Math.cos(roll), -Math.sin(roll), 0,
+                    Math.sin(roll), Math.cos(roll), 0,
+                    0, 0, 1
+                });
+
+                // Multiply all transformation matrices (heading * pitch * roll)
                 // Results in a new matrix describing both transformation
-                Matrix3 transform = headingTransfom.multiply(pitchTransform);
+                Matrix3 intermediateTransform = headingTransfom.multiply(pitchTransform);
+                Matrix3 finalTransform = intermediateTransform.multiply(rollTransform);
 
                 BufferedImage img = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
                 
@@ -85,9 +98,9 @@ public class DemoViewer {
                 }
 
                 for(Triangle t : triangles) {
-                    Vertex v1 = transform.transform(t.v1);
-                    Vertex v2 = transform.transform(t.v2);
-                    Vertex v3 = transform.transform(t.v3);
+                    Vertex v1 = finalTransform.transform(t.v1);
+                    Vertex v2 = finalTransform.transform(t.v2);
+                    Vertex v3 = finalTransform.transform(t.v3);
 
                     // Manually apply transformation
                     v1.x += getWidth() / 2;
@@ -148,6 +161,7 @@ public class DemoViewer {
         pane.add(renderPanel, BorderLayout.CENTER);
         headingSlider.addChangeListener(e -> renderPanel.repaint());
         pitchSlider.addChangeListener(e -> renderPanel.repaint());
+        rollSlider.addChangeListener(e -> renderPanel.repaint());
 
         frame.setSize(600, 600);
         frame.setVisible(true);
