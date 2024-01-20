@@ -129,6 +129,24 @@ public class DemoViewer {
                     v3.x += getWidth() / 2;
                     v3.y += getHeight() / 2;
 
+                    // Calculate Normal for shading purposes
+                    Vertex ab = new Vertex(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z);
+                    Vertex ac = new Vertex(v3.x - v1.x, v3.y - v1.y, v3.z - v1.z);
+
+                    Vertex norm = new Vertex(
+                        ab.y * ac.z - ab.z * ac.y,
+                        ab.z * ac.x - ab.x * ac.z,
+                        ab.x * ac.y - ab.y * ac.x
+                    );
+
+                    double normalLength = Math.sqrt(norm.x * norm.x + norm.y * norm.y + norm.z * norm.z);
+                    norm.x /= normalLength;
+                    norm.y /= normalLength;
+                    norm.z /= normalLength;
+
+                    // Drop the sign for demo but should be kept track of in order to shade accordingly
+                    double angleCos = Math.abs(norm.z);
+
                     // Compute rectangular bounds for triangle
                     int minX = (int) Math.max(0, Math.ceil(Math.min(v1.x, Math.min(v2.x, v3.x))));
                     int maxX = (int) Math.min(img.getWidth() - 1, Math.floor(Math.max(v1.x, Math.max(v2.x, v3.x))));
@@ -149,7 +167,7 @@ public class DemoViewer {
                                 int zIndex = y * img.getWidth() + x;
                                 
                                 if(zBuffer[zIndex] < depth) {
-                                    img.setRGB(x, y, t.color.getRGB());
+                                    img.setRGB(x, y, getShade(t.color, angleCos).getRGB());
                                     zBuffer[zIndex] = depth;
                                 }
                             }
@@ -165,6 +183,18 @@ public class DemoViewer {
 
         frame.setSize(400, 400);
         frame.setVisible(true);
+    }
+
+    public static Color getShade(Color color, double shade) {
+        double redLinear = Math.pow(color.getRed(), 2.4) * shade;
+        double greenLinear = Math.pow(color.getGreen(), 2.4) * shade;
+        double blueLinear = Math.pow(color.getBlue(), 2.4) * shade;
+
+        int red = (int) Math.pow(redLinear, 1 / 2.4);
+        int green = (int) Math.pow(greenLinear, 1 / 2.4);
+        int blue = (int) Math.pow(blueLinear, 1 / 2.4);
+
+        return new Color(red, green, blue);
     }
 }
 
