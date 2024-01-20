@@ -57,20 +57,6 @@ public class DemoViewer {
                         Color.BLUE)
                 );
 
-
-                /* This draws a simple wireframe that does not rotate
-                g2d.translate(getWidth() / 2, getHeight() / 2);
-                g2d.setColor(Color.WHITE);
-                for(Triangle t : triangles) {
-                    Path2D path = new Path2D.Double();
-                    path.moveTo(t.v1.x, t.v1.y);
-                    path.lineTo(t.v2.x, t.v2.y);
-                    path.lineTo(t.v3.x, t.v3.y);
-                    path.closePath();
-                    g2d.draw(path);
-                }
-                */
-
                 // Heading (XZ) transformation
                 double heading = Math.toRadians(headingSlider.getValue());
                 Matrix3 headingTransfom = new Matrix3(new double[] {
@@ -90,24 +76,6 @@ public class DemoViewer {
                 // Multiply both transformation matrices (heading * pitch)
                 // Results in a new matrix describing both transformation
                 Matrix3 transform = headingTransfom.multiply(pitchTransform);
-
-                // Translate origin from upper left corner to the center before drawing
-                // Draws a wire frame 
-                /*
-                g2d.translate(getWidth() / 2, getHeight() / 2);
-                g2d.setColor(Color.WHITE);
-                for(Triangle t : triangles) {
-                    Vertex v1 = transform.transform(t.v1);
-                    Vertex v2 = transform.transform(t.v2);
-                    Vertex v3 = transform.transform(t.v3);
-                    Path2D path = new Path2D.Double();
-                    path.moveTo(v1.x, v1.y);
-                    path.lineTo(v2.x, v2.y);
-                    path.lineTo(v3.x, v3.y);
-                    path.closePath();
-                    g2d.draw(path);
-                }
-                */
 
                 BufferedImage img = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
                 
