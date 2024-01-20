@@ -149,7 +149,7 @@ public class DemoViewer {
         headingSlider.addChangeListener(e -> renderPanel.repaint());
         pitchSlider.addChangeListener(e -> renderPanel.repaint());
 
-        frame.setSize(400, 400);
+        frame.setSize(600, 600);
         frame.setVisible(true);
     }
 
